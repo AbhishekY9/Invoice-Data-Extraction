@@ -5,54 +5,49 @@ import pdfplumber
 import pytesseract
 
 
-# This function extracts text from a PDF file line by line
 def extract_text_from_pdf(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         lines = []
         for page in pdf.pages:
-            lines.extend(page.extract_text().split("\n"))  # Splitting into lines for easier processing
+            lines.extend(page.extract_text().split("\n"))
     return lines
 
 
-# Preprocess image to improve OCR results
 def preprocess_image(image_path):
     image = Image.open(image_path)
-    image = image.convert("L")  # Convert image to grayscale
+    image = image.convert("L")
     enhancer = ImageEnhance.Contrast(image)
-    image = enhancer.enhance(2)  # Increase contrast for better clarity
-    image = image.filter(ImageFilter.MedianFilter(size=3))  # Reduce noise in the image
-    image = image.resize((image.width * 2, image.height * 2), Image.LANCZOS)  # Upscale image
+    image = enhancer.enhance(2)
+    image = image.filter(ImageFilter.MedianFilter(size=3))
+    image = image.resize((image.width * 2, image.height * 2), Image.LANCZOS)
     return image
 
 
-# Extract text from an image using OCR
 def extract_text_from_image(image_path):
     processed_image = preprocess_image(image_path)
-    text = pytesseract.image_to_string(processed_image)  # Use pytesseract to get text from the image
-    return text.split("\n")  # Split text into lines
+    text = pytesseract.image_to_string(processed_image)
+    return text.split("\n")
 
 
-# Clean up the extracted text by removing unwanted spaces and newlines
 def clean_text(text):
     return text.strip().replace("\n", " ").replace("\r", " ").strip()
 
 
-# Use regex to get key invoice details from the text
 def extract_invoice_data(lines):
-    text = " ".join(lines)  # Join lines to form a single string
+    text = " ".join(lines)
     # Regex patterns for extracting invoice details
-    company_name_pattern = r"((\w+\s+){3}\w+)\s+GSTIN"  # Matches the company name
-    gstin_pattern = r"GSTIN\s([\dA-Z]+)"  # Matches GSTIN
-    phone_pattern = r"Mobile\s*([+\d\s]+)"  # Matches phone number
-    email_pattern = r"Email\s*([\w\.-]+@[\w\.-]+)"  # Matches email
-    invoice_number_pattern = r"Invoice\s#:\s([A-Z0-9\-]+)"  # Matches invoice number
-    invoice_date_pattern = r"Invoice Date:\s([\d]+\s[A-Za-z]+\s[\d]+)"  # Matches invoice date
-    due_date_pattern = r"Due Date:\s([\d]+\s[A-Za-z]+\s[\d]+)"  # Matches due date
-    customer_pattern = r"Customer Details:\s([\w\s]+)(?=\sPh:|Place)"  # Matches customer details
-    total_amount_pattern = r"Total\s(?:₹)?([\d,]+\.\d{2})"  # Matches total amount
-    place_of_supply_pattern = r"Place of Supply:\s([\dA-Z\- ]+)"  # Matches place of supply
-    bank_name_pattern = r"Bank:\s([\w\s]+) Account"  # Matches bank name
-    account_number_pattern = r"Account\s#:\s([\d]+)"  # Matches account number
+    company_name_pattern = r"((\w+\s+){3}\w+)\s+GSTIN"
+    gstin_pattern = r"GSTIN\s([\dA-Z]+)"
+    phone_pattern = r"Mobile\s*([+\d\s]+)"
+    email_pattern = r"Email\s*([\w\.-]+@[\w\.-]+)"
+    invoice_number_pattern = r"Invoice\s#:\s([A-Z0-9\-]+)"
+    invoice_date_pattern = r"Invoice Date:\s([\d]+\s[A-Za-z]+\s[\d]+)"
+    due_date_pattern = r"Due Date:\s([\d]+\s[A-Za-z]+\s[\d]+)"
+    customer_pattern = r"Customer Details:\s([\w\s]+)(?=\sPh:|Place)"
+    total_amount_pattern = r"Total\s(?:₹)?([\d,]+\.\d{2})"
+    place_of_supply_pattern = r"Place of Supply:\s([\dA-Z\- ]+)"
+    bank_name_pattern = r"Bank:\s([\w\s]+) Account"
+    account_number_pattern = r"Account\s#:\s([\d]+)"
 
     # Extracting data using the regex patterns
     company_name = clean_text(re.search(company_name_pattern, text).group(1)) if re.search(company_name_pattern, text) else "Not found"
@@ -90,7 +85,6 @@ def extract_invoice_data(lines):
     }
 
 
-# Count the number of "Not found" fields in the extracted data
 def count_not_found_fields(invoice_data):
     not_found_count = 0
     for value in invoice_data.values():
@@ -99,18 +93,17 @@ def count_not_found_fields(invoice_data):
     return not_found_count
 
 
-# Process all files in the specified directory
 def process_files_in_directory(directory_path):
     total_files = 0
     overall_accuracy = 0
     not_found_field_counts = []
 
-    total_fields_per_file = 12  # There are 12 fields we want to extract
+    total_fields_per_file = 12
 
     for file_name in os.listdir(directory_path):
         file_path = os.path.join(directory_path, file_name)
 
-        if os.path.isfile(file_path):  # Make sure it's a file
+        if os.path.isfile(file_path):
             total_files += 1
             if file_path.lower().endswith(".pdf"):
                 lines = extract_text_from_pdf(file_path)
@@ -121,7 +114,7 @@ def process_files_in_directory(directory_path):
             not_found_count = count_not_found_fields(invoice_data)
             not_found_field_counts.append(not_found_count)
 
-            # Calculate accuracy for the current file
+            # caalculate accuracy for the current file
             accuracy_per_file = ((total_fields_per_file - not_found_count) / total_fields_per_file) * 100
             overall_accuracy += accuracy_per_file
 
@@ -129,10 +122,10 @@ def process_files_in_directory(directory_path):
             print(f"Not found fields: {not_found_count} out of {total_fields_per_file}")
             print(f"Accuracy for this file: {accuracy_per_file:.2f}%\n")
 
-    # Compute overall accuracy
+    # compute overall accuracy
     overall_accuracy = overall_accuracy / total_files if total_files > 0 else 0
 
-    # Print summary of results
+    # print summary of results
     print(f"\nSummary:")
     print(f"Total files processed: {total_files}")
     print(f"Overall accuracy: {overall_accuracy:.2f}%")
