@@ -137,3 +137,7 @@ Here are some screenshots of the code execution:
 
 1. ![Screenshot of executed code - Image 1](fig/image1.png)
 2. ![Screenshot of executed code - Image 2](fig/image2.png)
+3. ![Screenshot of executed code - Image 2](fig/image3.png)
+4. ![Screenshot of executed code - Image 2](fig/image4.png)
+5. ![Screenshot of executed code - Image 2](fig/image5.png)
+
