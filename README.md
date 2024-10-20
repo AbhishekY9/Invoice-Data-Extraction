@@ -135,5 +135,5 @@ The overall accuracy is the average of all individual file accuracies.
 ## Screenshots
 Here are some screenshots of the code execution:
 
-1. ![Screenshot of executed code - Image 1](fig/image1.jpg)
-2. ![Screenshot of executed code - Image 2](fig/image2.jpg)
+1. ![Screenshot of executed code - Image 1](fig/image1.png)
+2. ![Screenshot of executed code - Image 2](fig/image2.png)
